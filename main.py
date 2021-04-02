@@ -15,15 +15,15 @@ db = SQLAlchemy(app)
 ##Cafe TABLE Configuration
 class Cafe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), unique=True, nullable=False)
-    map_url = db.Column(db.String(500), nullable=False)
-    img_url = db.Column(db.String(500), nullable=False)
-    location = db.Column(db.String(250), nullable=False)
-    seats = db.Column(db.String(250), nullable=False)
-    has_toilet = db.Column(db.Boolean, nullable=False)
-    has_wifi = db.Column(db.Boolean, nullable=False)
-    has_sockets = db.Column(db.Boolean, nullable=False)
-    can_take_calls = db.Column(db.Boolean, nullable=False)
+    name = db.Column(db.String(250), unique=True, nullable=True)
+    map_url = db.Column(db.String(500), nullable=True)
+    img_url = db.Column(db.String(500), nullable=True)
+    location = db.Column(db.String(250), nullable=True)
+    seats = db.Column(db.String(250), nullable=True)
+    has_toilet = db.Column(db.Boolean, nullable=True)
+    has_wifi = db.Column(db.Boolean, nullable=True)
+    has_sockets = db.Column(db.Boolean, nullable=True)
+    can_take_calls = db.Column(db.Boolean, nullable=True)
     coffee_price = db.Column(db.String(250), nullable=True)
 
 
@@ -114,7 +114,15 @@ def add_coffee_shop():
     if request.method == "POST":
         new_cafe = Cafe(
             name=request.values.get("name"),
-            map_url=request.values.get("map_url")
+            map_url=request.values.get("map_url"),
+            can_take_calls=request.values.get("can_take_calls"),
+            coffee_price=request.values.get("coffee_price"),
+            has_sockets=request.values.get("has_sockets"),
+            has_toilet=request.values.get("has_toilet"),
+            has_wifi=request.values.get("has_wifi"),
+            img_url=request.values.get("img_url"),
+            seats=request.values.get("seats"),
+            location=request.values.get("location")
         )
         db.session.add(new_cafe)
         db.session.commit()
@@ -133,10 +141,14 @@ def patch_update_price(cafe_id):
     if cafe_id:
         new_price_input = request.values.get("new_price")
         if new_price_input is not None:
-            to_edit = Cafe.query.get(cafe_id)
-            to_edit.coffee_price = new_price_input
-            db.session.commit()
-            return jsonify({"Success": "Successfully updated the price"})
+            try:
+                to_edit = Cafe.query.get(cafe_id)
+                to_edit.coffee_price = new_price_input
+                db.session.commit()
+                return jsonify({"Success": "Successfully updated the price"})
+            except AttributeError:
+                return jsonify({"error": {"Nof Found": "The ID was not found"}})
+
         else:
             return jsonify({"Invalid Parameter": "Sorry the parameter was not found"}), 404
     else:
